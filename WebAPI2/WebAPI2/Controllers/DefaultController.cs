@@ -132,6 +132,79 @@ namespace WebAPI2.Controllers
          }
       }
 
+      [HttpDelete]
+      [Route("cliente/{id:int}")]
+      public HttpResponseMessage DeleteById(int id)
+      {
+         try
+         {
+            bool resultado = false;
+
+            using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+            {
+               connection.Open();
+
+               using (SqlCommand command = new SqlCommand())
+               {
+                  command.Connection = connection;
+                  command.CommandText = "delete from clientes where id = @id";
+                  command.Parameters.AddWithValue("id", id);
+
+                  int i = command.ExecuteNonQuery();
+                  resultado = i > 0;
+               }
+
+               connection.Close();
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, resultado);
+         }
+         catch (Exception ex)
+         {
+            return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+         }
+      }
+
+      [HttpPost]
+      [Route("cliente")]
+      public HttpResponseMessage Post(Cliente cliente)
+      {
+         try
+         {
+            bool resultado = false;
+
+            if (cliente == null) throw new ArgumentNullException("cliente");
+
+            using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+            {
+               connection.Open();
+
+               using (SqlCommand command = new SqlCommand())
+               {
+                  command.Connection = connection;
+                  command.CommandText = "insert into clientes(nome, data_nascimento, email) values(@nome, @data_nascimento, @email)";
+
+                  command.Parameters.AddWithValue("nome", cliente.Nome);
+                  command.Parameters.AddWithValue("data_nascimento", cliente.DataNascimento);
+                  command.Parameters.AddWithValue("email", cliente.Email);
+
+                  int i = command.ExecuteNonQuery();
+                  resultado = i > 0;
+               }
+
+               connection.Close();
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, resultado);
+         }
+         catch (Exception ex)
+         {
+            return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+         }
+      }
+
+
+
 
 
    }
