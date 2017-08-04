@@ -204,6 +204,48 @@ namespace WebAPI2.Controllers
       }
 
 
+      [HttpPut]
+      [Route("cliente/{id:int}")]
+      public HttpResponseMessage Put(int id, Cliente cliente)
+      {
+         try
+         {
+            bool resultado = false;
+
+            if (cliente == null) throw new ArgumentNullException("cliente");
+            if (id == 0) throw new ArgumentNullException("id");
+
+            using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+            {
+               connection.Open();
+
+               using (SqlCommand command = new SqlCommand())
+               {
+                  command.Connection = connection;
+                  command.CommandText = "update clientes set nome = @nome, data_nascimento = @data_nascimento, email = @email where id = @id";
+
+                  command.Parameters.AddWithValue("id", id);
+                  command.Parameters.AddWithValue("nome", cliente.Nome);
+                  command.Parameters.AddWithValue("data_nascimento", cliente.DataNascimento);
+                  command.Parameters.AddWithValue("email", cliente.Email);
+
+                  int i = command.ExecuteNonQuery();
+                  resultado = i > 0;
+               }
+
+               connection.Close();
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, resultado);
+         }
+         catch (Exception ex)
+         {
+            return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+         }
+      }
+
+
+
 
 
 
