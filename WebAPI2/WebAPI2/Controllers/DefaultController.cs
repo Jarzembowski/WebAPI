@@ -6,14 +6,17 @@ using System.Net.Http;
 using System.Web.Http;
 using WebAPI2.Models;
 using System.Data.SqlClient;
+using WebAPI2.DAL;
+using System.Data.Entity;
+using System.Data.Entity.ModelConfiguration.Conventions;
 
 namespace WebAPI2.Controllers
 {
    [RoutePrefix("api/meuprojeto")]
    public class DefaultController : ApiController
     {
-      private string ConnectionString = "Data Source=DESK30;Initial Catalog=webAPI;Integrated Security=True";
 
+      public string ConnectionString = "Data Source = DESK30; Initial Catalog = webAPI; Integrated Security = True";
       [HttpGet]
       [Route("datahora/consulta")]
       public HttpResponseMessage GetDataHoraServidor()
@@ -70,7 +73,7 @@ namespace WebAPI2.Controllers
                      {
                         Id = reader["id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["id"]),
                         Nome = reader["nome"] == DBNull.Value ? string.Empty : reader["nome"].ToString(),
-                        DataNascimento = reader["data_nascimento"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["data_nascimento"]),
+                        Data_Nascimento = reader["data_nascimento"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["data_nascimento"]),
                         Email = reader["email"] == DBNull.Value ? string.Empty : reader["email"].ToString()
                      };
 
@@ -115,7 +118,7 @@ namespace WebAPI2.Controllers
                      {
                         Id = reader["id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["id"]),
                         Nome = reader["nome"] == DBNull.Value ? string.Empty : reader["nome"].ToString(),
-                        DataNascimento = reader["data_nascimento"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["data_nascimento"]),
+                        Data_Nascimento = reader["data_nascimento"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["data_nascimento"]),
                         Email = reader["email"] == DBNull.Value ? string.Empty : reader["email"].ToString()
                      };
                   }
@@ -136,6 +139,19 @@ namespace WebAPI2.Controllers
       [Route("cliente/{id:int}")]
       public HttpResponseMessage DeleteById(int id)
       {
+         
+         MyDbContext dbContext = new MyDbContext("Data Source=DESK30;Initial Catalog=webAPI;Integrated Security=True");
+         var unitOfWork = new UnitOfWork(dbContext);
+
+
+         // Delete
+         var cliente = unitOfWork.ClienteRepository.Entities
+             .First(n => n.Id == id);
+
+            unitOfWork.ClienteRepository.Remove(cliente);
+            unitOfWork.Commit(); // Save changes to database
+
+         /*
          try
          {
             bool resultado = false;
@@ -162,7 +178,9 @@ namespace WebAPI2.Controllers
          catch (Exception ex)
          {
             return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
-         }
+         }*/
+
+         return Request.CreateResponse(HttpStatusCode.OK, true);
       }
 
       [HttpPost]
@@ -185,7 +203,7 @@ namespace WebAPI2.Controllers
                   command.CommandText = "insert into clientes(nome, data_nascimento, email) values(@nome, @data_nascimento, @email)";
 
                   command.Parameters.AddWithValue("nome", cliente.Nome);
-                  command.Parameters.AddWithValue("data_nascimento", cliente.DataNascimento);
+                  command.Parameters.AddWithValue("data_nascimento", DateTime.Now);
                   command.Parameters.AddWithValue("email", cliente.Email);
 
                   int i = command.ExecuteNonQuery();
@@ -226,7 +244,7 @@ namespace WebAPI2.Controllers
 
                   command.Parameters.AddWithValue("id", id);
                   command.Parameters.AddWithValue("nome", cliente.Nome);
-                  command.Parameters.AddWithValue("data_nascimento", cliente.DataNascimento);
+                  command.Parameters.AddWithValue("data_nascimento", cliente.Data_Nascimento);
                   command.Parameters.AddWithValue("email", cliente.Email);
 
                   int i = command.ExecuteNonQuery();
@@ -236,7 +254,51 @@ namespace WebAPI2.Controllers
                connection.Close();
             }
 
-            return Request.CreateResponse(HttpStatusCode.OK, resultado);
+            return Request.CreateResponse(HttpStatusCode.OK, cliente);
+         }
+         catch (Exception ex)
+         {
+            return Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message);
+         }
+      }
+
+
+      [HttpGet]
+      [Route("cliente/{email}")]
+      public HttpResponseMessage GetByEmail(string email)
+      {
+         try
+         {
+            Cliente cliente = null;
+
+            using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+            {
+               connection.Open();
+
+               using (SqlCommand command = new SqlCommand())
+               {
+                  command.Connection = connection;
+                  command.CommandText = "select id, nome, data_nascimento, email from clientes where email = @email";
+                  command.Parameters.AddWithValue("email", email);
+
+                  SqlDataReader reader = command.ExecuteReader();
+
+                  while (reader.Read())
+                  {
+                     cliente = new Cliente()
+                     {
+                        Id = reader["id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["id"]),
+                        Nome = reader["nome"] == DBNull.Value ? string.Empty : reader["nome"].ToString(),
+                        Data_Nascimento = reader["data_nascimento"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(reader["data_nascimento"]),
+                        Email = reader["email"] == DBNull.Value ? string.Empty : reader["email"].ToString()
+                     };
+                  }
+               }
+
+               connection.Close();
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, cliente);
          }
          catch (Exception ex)
          {

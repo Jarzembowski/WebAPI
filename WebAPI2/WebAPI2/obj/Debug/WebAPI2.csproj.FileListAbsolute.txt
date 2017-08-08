@@ -58,3 +58,7 @@ c:\projects\webAPI2\WebAPI2\WebAPI2\obj\Debug\WebAPI2.csproj.App.config
 c:\projects\webAPI2\WebAPI2\WebAPI2\obj\Debug\WebAPI2.csprojResolveAssemblyReference.cache
 c:\projects\webAPI2\WebAPI2\WebAPI2\obj\Debug\WebAPI2.dll
 c:\projects\webAPI2\WebAPI2\WebAPI2\obj\Debug\WebAPI2.pdb
+c:\projects\webAPI2\WebAPI2\WebAPI2\bin\EntityFramework.dll
+c:\projects\webAPI2\WebAPI2\WebAPI2\bin\EntityFramework.xml
+c:\projects\webAPI2\WebAPI2\WebAPI2\bin\EntityFramework.SqlServer.dll
+c:\projects\webAPI2\WebAPI2\WebAPI2\bin\EntityFramework.SqlServer.xml
